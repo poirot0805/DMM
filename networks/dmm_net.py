@@ -39,7 +39,7 @@ class DMM(nn.Module):
     # for training
     def forward(self, latent_vecs, sdf_data, is_on_surf, normal, centers_tensor, indices, **kwargs):
         # Get coordinates
-        coords = sdf_data[..., :3].requires_grad_(True)
+        coords = sdf_data[..., :3].float().requires_grad_(True)
 
         # Get labels
         label_ids = sdf_data[..., 4]
@@ -49,7 +49,9 @@ class DMM(nn.Module):
         # -1 means off-the-surface
         if -1 in batch_label_list:
             batch_label_list.remove(-1)
-
+        for id in batch_label_list:
+            if id>30:
+                batch_label_list.remove(id)
         blend_loss = 0.
         embedding_reg_loss = 0.
         sep_loss = 0.
