@@ -302,7 +302,7 @@ def main_function(experiment_directory, continue_from):
 
     dmm_net.train()
     latent_vecs.train()
-
+        
     for epoch in range(start_epoch, num_epochs + 1):
         start = time.time()
         logging.info("---------------------------------")
@@ -311,6 +311,7 @@ def main_function(experiment_directory, continue_from):
         logging.info("lr: {}".format(optim.param_groups[0]['lr']))
 
         log_counter = 0
+        print(len(sdf_loader))
         for (sdf_data, is_on_surf, normal, centers_tensor), indices in sdf_loader:
 
             sdf_data = sdf_data.to(device)
@@ -318,9 +319,30 @@ def main_function(experiment_directory, continue_from):
             normal = normal.to(device)
             centers_tensor = centers_tensor.to(device)
             indices = indices.to(device)
+            # cuda
+            if torch.cuda.is_available():
+                num_gpus = torch.cuda.device_count()
+                print(f"Number of available GPUs: {num_gpus}")
 
+                for i in range(num_gpus):
+                    print(f"\nGPU {i} usage:")
+                    print(f"Memory allocated: {torch.cuda.memory_allocated(i)} bytes")
+                    print(f"Memory reserved: {torch.cuda.memory_reserved(i)} bytes")
+            else:
+                print("No available GPUs.")
             train_loss, losses_log = dmm_net(latent_vecs, sdf_data, is_on_surf, normal, centers_tensor, indices)
+            
+            # cuda
+            if torch.cuda.is_available():
+                num_gpus = torch.cuda.device_count()
+                print(f"Number of available GPUs: {num_gpus}")
 
+                for i in range(num_gpus):
+                    print(f"\nGPU {i} usage:")
+                    print(f"Memory allocated: {torch.cuda.memory_allocated(i)} bytes")
+                    print(f"Memory reserved: {torch.cuda.memory_reserved(i)} bytes")
+            else:
+                print("No available GPUs.")
             optim.zero_grad()
             train_loss.backward()
             optim.step()
